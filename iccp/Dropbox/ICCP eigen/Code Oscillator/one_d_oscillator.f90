@@ -5,18 +5,21 @@ program one_d_oscillator
   implicit none
   
   integer, parameter :: N = 400, steps = 1000
-  real(8) :: d, alpha
-!   integer ::
-!   integer, allocatable ::
+  real(8) :: d, alpha, E
   real(8), allocatable :: walkers(:)
   alpha = 0.5_8
   d = 1._8
+  E = 1._8
   allocate(walkers(N))
+  
 
   call init_walkers
   call walk 
+  E = sum(wavefct(walkers)**2 * localE(walkers)) / sum(wavefct(walkers)**2)
+  print *, E
   
- contains
+  
+ contains    
  
   subroutine walk
     integer :: i, j, counter
@@ -30,7 +33,7 @@ program one_d_oscillator
     
     do j = 1, steps
       call random_number(ran)
-      ran = ran - 0.5_8
+      ran = (ran - 0.5_8) * 2
       walkers_new = walkers + d * ran
       p = (wavefct(walkers_new) / wavefct(walkers))**2
     
@@ -46,18 +49,26 @@ program one_d_oscillator
         endif
       endif
     end do
+    
     if (mod (j, 100) == 0) then
       print *,counter, d
       d = d * 2 * counter/(N-1)/100
       counter = 0
     end if
+    
     end do
+    
   end subroutine
   
   subroutine init_walkers
     call random_number(walkers)
     walkers = walkers - 0.5_8
   end subroutine
+  
+  function localE(x)
+    real(8) :: localE(N), x(N)
+    localE = alpha + x**2 * (0.5_8 - 2 * alpha**2)
+  end function
   
   function wavefct(x)
     real(8) :: wavefct(N), x(N)
