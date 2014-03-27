@@ -13,18 +13,15 @@ program three_d_oscillator
   
   call init_walkers
   call metropolis 
-!   E = (wavefct(walkers(:,5))**2 * localE(walkers(:,5))) / wavefct(walkers(:,5))**2)
-  E = sum(wavefct(walkers)**2 * localE(walkers)) / sum(wavefct(walkers)**2)
-!   print *, wavefct(walkers)**2, E
   
   
  contains
  
   subroutine metropolis
     integer :: i, j, counter, check_every
-    real(8) :: kans(N), ran(3,N), p(N), walkers_new(3, N), Etot
+    real(8) :: kans(N), ran(3,N), p(N), walkers_new(3, N), Etot, localenergy(N), varE
     
-    d = 0.4_8
+    d = 0.5_8
     ran = 0._8
     p = 0._8
     kans = 0._8
@@ -51,9 +48,13 @@ program three_d_oscillator
       d = d * 2._8 * counter/(N-1)/check_every
       counter = 0
     end if
-    Etot = Etot + sum(localE(Walkers))
+    localenergy = localE(walkers)
+    Etot = Etot + sum(localenergy)
+    varE = sum(localenergy**2) / N - sum(localenergy / N) **2
+!     print *, 'tussen energy', sum(localenergy) / N
     end do
-    print *, 'final energy', etot/steps/N
+    print *, 'final energy', Etot/steps/N/3._8, 'variance of E', varE
+    print *, 'for alpha is', alpha
   end subroutine
   
   subroutine init_walkers
@@ -61,25 +62,11 @@ program three_d_oscillator
     walkers = walkers - 0.5_8
   end subroutine
   
-!   function localE(x)
-!   real(8) :: localE(1), x(3,1), rsquared(1)
-!   rsquared = 0._8
-!   rsquared = sum(x**2, dim=1)
-!   localE = alpha + rsquared * (0.5_8 - 2._8 * alpha**2)
-! end function
-!    
-! function wavefct(x)
-!   real(8) :: x(3,1), rsquared(1), wavefct(1)
-!   rsquared = 0._8
-!   rsquared = sum(x**2, dim=1)
-!   wavefct = exp(-alpha*rsquared)
-! end function
-  
   function localE(x)
     real(8) :: localE(N), x(3,N), rsquared(N)
-    rsquared = 0._8
+!     rsquared = 0._8
     rsquared = sum(x**2, dim=1)
-    localE = alpha + rsquared * (0.5_8 - 2._8 * alpha**2)
+    localE = 3 * alpha + rsquared * (0.5_8 - 2._8 * alpha**2)
   end function
    
   function wavefct(x)
