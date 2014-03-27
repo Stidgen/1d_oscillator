@@ -2,10 +2,10 @@ program one_d_oscillator
 
   implicit none
   
-  integer, parameter :: N = 400, steps = 10000
+  integer, parameter :: N = 400, steps = 100000
   real(8) :: d, alpha, E
   real(8), allocatable :: walkers(:)
-  alpha = 0.6_8
+  alpha = 0.45_8
   d = 1._8
   E = 1._8
   allocate(walkers(N))
@@ -20,7 +20,7 @@ program one_d_oscillator
  
   subroutine aanpassen
     integer :: i, j, counter
-    real(8) :: kans(N), ran(N), p(N), walkers_new(N), Etot
+    real(8) :: kans(N), ran(N), p(N), walkers_new(N), Etot, localenergy(N), varE
     
     d = 0.5_8
     ran = 0._8
@@ -48,9 +48,11 @@ program one_d_oscillator
         d = d * 2 * counter/(N-1)/100
         counter = 0
       end if
-      Etot = Etot + sum(localE(Walkers))
+      localenergy = localE(walkers)
+      Etot = Etot + sum(localenergy)
+      varE = sum(localenergy**2) / N - sum(localenergy / N) **2
     end do
-    print *, 'final energy', etot/steps/N
+    print *, 'final energy', Etot/steps/N, 'variance of E', varE
   end subroutine
   
   subroutine init_walkers
